@@ -1,0 +1,43 @@
+name: Docker Build/Publish Image
+on:
+  workflow_call:
+    secrets:
+      DOCKER_TARGET_PLATFORM:
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    env:
+      DOCKER_REGISTRY: ghcr.io
+      DOCKER_IMAGE: ${{ github.repository }}
+      DOCKER_USERNAME: ${{ github.actor }}
+      DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      DOCKER_TARGET_PLATFORM: ${{ secrets.DOCKER_TARGET_PLATFORM }}
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v1
+      - name: Set up Docker Buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          version: latest
+      - name: Prepare
+        if: success()
+        id: prepare
+        run: |
+          echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}        
+          echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}        
+          echo ::set-output name=version::${GITHUB_RUN_NUMBER}
+      - name: Lowercase
+        id: string
+        uses: ASzc/change-string-case-action@v2
+        with:
+          string: ${{ steps.prepare.outputs.docker_image }}
+      - name: Docker Login
+        if: success()
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
+      - name: Run Buildx (push image)
+        if: success()
+        run: |
+          docker buildx build --platform ${{ steps.prepare.outputs.docker_platform }} --tag ${{ steps.string.outputs.lowercase}}:${{ steps.prepare.outputs.version }}  --file Dockerfile --output type=image,push=true .
