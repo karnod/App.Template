@@ -17,8 +17,5 @@ jobs:
         run: |
           npm install
           java -version
-          ionic cordova platform rm android
-          ionic cordova platform rm ios
-          ionic cordova platform add android@7.1.1
           ionic cordova prepare android
           ionic cordova build android
