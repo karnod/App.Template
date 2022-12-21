@@ -27,5 +27,5 @@ jobs:
           echo ${CLUSTER_CONFIG} | base64 -d > /kubeconfig.yml
           sed -i -e "s|#NAMESPACE#|$NAMESPACE|g" bootstrap/namespace.yml
           sed -i -e "s|#BASE64DOCKERAUTH#|$BASE64DOCKERAUTH|g" bootstrap/imagepull.yml
-          kubectl apply -f bootstrap/namespace.yml --kubeconfig="${CLUSTER_CONFIG}"
-          kubectl apply -f bootstrap/imagepull.yml --kubeconfig=""${CLUSTER_CONFIG}"
+          kubectl apply -f bootstrap/namespace.yml --kubeconfig=/kubeconfig.yml
+          kubectl apply -f bootstrap/imagepull.yml --kubeconfig=/kubeconfig.yml
