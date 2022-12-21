@@ -1,16 +1,20 @@
 name: Deploy Helm Chart
 on:
   workflow_call:
+    inputs:
+      RELEASE_NAME:
+        type: string
+        description: Helm Release name
+        required: true
+      NAMESPACE:
+        type: string
+        description: Namespace
+        required: true      
     secrets:
       CLUSTER_CONFIG:
         required: true
       BASE64DOCKERAUTH:
         required: true
-      APP_NAME:
-        required: true
-      RELEASE_NAME:
-        required: true
-
 jobs:
   deploy:
     runs-on: ubuntu-20.04
@@ -19,8 +23,8 @@ jobs:
       env:
         CLUSTER_CONFIG: ${{ secrets.CLUSTER_CONFIG }}
         BASE64DOCKERAUTH: ${{ secrets.BASE64DOCKERAUTH }}
-        APP_NAME: ${{ secrets.APP_NAME }}
-        RELEASE_NAME: ${{ secrets.RELEASE_NAME }}
+        NAMESPACE: ${{ inputs.NAMESPACE }}
+        RELEASE_NAME: ${{ inputs.RELEASE_NAME }}
     steps:
       - uses: actions/checkout@v2
       - name: Deploy to Kubernetes via Helm 3.2.1
@@ -29,7 +33,7 @@ jobs:
           kubectl apply -f namespace.yml --kubeconfig=/kubeconfig.yml
           cd helm
           sed -i -e "s|#BASE64DOCKERAUTH#|$BASE64DOCKERAUTH|g" templates/imagepull.yml   
-          helm list --namespace ${APP_NAME} --kubeconfig=/kubeconfig.yml
-          export DEPLOYS=$(helm ls --namespace ${APP_NAME} --kubeconfig=/kubeconfig.yml | grep $RELEASE_NAME | wc -l)
+          helm list --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml
+          export DEPLOYS=$(helm ls --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml | grep $RELEASE_NAME | wc -l)
           echo $DEPLOYS
-          if [ ${DEPLOYS} -eq 0 ]; then helm install ${RELEASE_NAME} . --kubeconfig=/kubeconfig.yml --namespace=${APP_NAME}; else helm upgrade ${RELEASE_NAME} . --kubeconfig=/kubeconfig.yml --namespace=${APP_NAME}; fi
+          if [ ${DEPLOYS} -eq 0 ]; then helm install ${RELEASE_NAME} . --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE}; else helm upgrade ${RELEASE_NAME} . --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE}; fi
