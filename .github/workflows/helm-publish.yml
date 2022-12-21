@@ -30,7 +30,6 @@ jobs:
           git config --global credential.helper cache
           git clone https://${HELM_GIT_PASSWORD}@github.com/${GITHUB_REPOSITORY_OWNER}/helm-charts
           cd helm-charts
-          helm lint ../helm/
           helm package ../helm/
           helm repo index . # create or update the index.yaml for repo
           git add .
