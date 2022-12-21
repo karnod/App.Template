@@ -1,0 +1,21 @@
+name: Ionic Android Build
+on:
+  workflow_call:
+    inputs:
+      CONTAINER_IMAGE:
+        type: string
+        description: IONIC BUILDER IMAGE
+        required: true
+jobs:
+  ionic-android-build:
+    runs-on: ubuntu-20.04
+    container:
+      image:  ${{ inputs.CONTAINER_IMAGE }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Ionic Android Build
+        run: |
+          npm install
+          java -version
+          ionic cordova prepare android
+          ionic cordova build android
