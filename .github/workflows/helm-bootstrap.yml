@@ -24,6 +24,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Bootstrap helm release
         run: |
+          echo ${CLUSTER_CONFIG} | base64 -d > /kubeconfig.yml
           sed -i -e "s|#NAMESPACE#|$NAMESPACE|g" bootstrap/namespace.yml
           sed -i -e "s|#BASE64DOCKERAUTH#|$BASE64DOCKERAUTH|g" bootstrap/imagepull.yml
           kubectl apply -f bootstrap/namespace.yml --kubeconfig="${CLUSTER_CONFIG}"
