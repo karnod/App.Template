@@ -1,0 +1,45 @@
+name: Deploy Helm Chart
+on:
+  workflow_call:
+    inputs:
+      RELEASE_NAME:
+        type: string
+        description: Helm Release name
+        required: true
+      NAMESPACE:
+        type: string
+        description: Namespace
+        required: true
+      CHARTNAME:
+        type: string
+        description: Chartname
+        required: true     
+    secrets:
+      CLUSTER_CONFIG:
+        required: true
+      HELM_GIT_PASSWORD:
+        required: true
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    container:
+      image: alpine/helm:3.5.3
+      env:
+        CLUSTER_CONFIG: ${{ secrets.CLUSTER_CONFIG }}
+        HELM_GIT_PASSWORD: ${{ secrets.HELM_GIT_PASSWORD }}
+        CHARTNAME: ${{ inputs.CHARTNAME }}
+        RELEASE_NAME: ${{ inputs.RELEASE_NAME }}
+        NAMESPACE: ${{ inputs.NAMESPACE }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy to Kubernetes via Helm
+        run: |
+          echo ${CLUSTER_CONFIG} | base64 -d > /kubeconfig.yml
+          export CHART=$(echo $CHARTNAME | sed -e 's/\.//g')
+          echo ${CHART}
+          helm repo add ${GITHUB_REPOSITORY_OWNER} "https://${HELM_GIT_PASSWORD}@raw.githubusercontent.com/${GITHUB_REPOSITORY_OWNER}/helm-charts/main/"
+          helm repo update
+          helm list --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml
+          export DEPLOYS=$(helm ls --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml | grep $RELEASE_NAME | wc -l)
+          echo $DEPLOYS
+          if [ ${DEPLOYS} -eq 0 ]; then helm install ${RELEASE_NAME} ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE}; else helm upgrade ${RELEASE_NAME} ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE}; fi
