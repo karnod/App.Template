@@ -1,0 +1,38 @@
+name: Publish Helm Chart
+on:
+  workflow_call:
+    secrets:
+      HELM_GIT_USERNAME:
+        required: true
+      HELM_GIT_EMAIL:
+        required: true
+      HELM_GIT_PASSWORD:
+        required: true
+jobs:
+  package-helm:
+    runs-on: ubuntu-20.04
+    container:
+      image: alpine/helm:3.5.3
+      env:
+        CHARTNAME: ${{ github.repository }}
+        HELM_GIT_USERNAME: ${{ secrets.HELM_GIT_USERNAME }}
+        HELM_GIT_PASSWORD: ${{ secrets.HELM_GIT_PASSWORD }}
+        HELM_GIT_EMAIL: ${{ secrets.HELM_GIT_EMAIL }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Push to Private Helm Chart
+        run: |
+          export CHART=$(echo $CHARTNAME | sed -e 's/\.//g')
+          echo ${CHART}
+          apk add git
+          git config --global user.email ${HELM_GIT_EMAIL}
+          git config --global user.name ${HELM_GIT_USERNAME}
+          git config --global credential.helper cache
+          git clone https://${HELM_GIT_PASSWORD}@github.com/${GITHUB_REPOSITORY_OWNER}/helm-charts
+          cd helm-charts
+          helm lint ../helm/
+          helm package ../helm/
+          helm repo index . # create or update the index.yaml for repo
+          git add .
+          git commit -m "${CHART} $(date)"
+          git push
