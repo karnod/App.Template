@@ -1,0 +1,30 @@
+name: Bootstrap Helm Chart
+on:
+  workflow_call:
+    inputs:
+      NAMESPACE:
+        type: string
+        description: Namespace
+        required: true   
+    secrets:
+      CLUSTER_CONFIG:
+        required: true
+      BASE64DOCKERAUTH:
+        required: true
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    container:
+      image: dtzar/helm-kubectl:3.2.1
+      env:
+        CLUSTER_CONFIG: ${{ secrets.CLUSTER_CONFIG }}
+        BASE64DOCKERAUTH: ${{ secrets.BASE64DOCKERAUTH }}
+        NAMESPACE: ${{ inputs.NAMESPACE }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Bootstrap helm release
+        run: |
+          sed -i -e "s|#NAMESPACE#|$NAMESPACE|g" bootstrap/namespace.yml
+          sed -i -e "s|#BASE64DOCKERAUTH#|$BASE64DOCKERAUTH|g" bootstrap/imagepull.yml
+          kubectl apply -f bootstrap/namespace.yml --kubeconfig="${CLUSTER_CONFIG}"
+          kubectl apply -f bootstrap/imagepull.yml --kubeconfig=""${CLUSTER_CONFIG}"
