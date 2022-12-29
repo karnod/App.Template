@@ -18,7 +18,7 @@ on:
 jobs:
   deploy-terraform:
     name: 'Terraform Deploy'
-    runs-on: ubuntu-20.4
+    runs-on: ubuntu-20.04
     environment:  ${{ inputs.ENVIRONMENT }}
     env:
       ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}
