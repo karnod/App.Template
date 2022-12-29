@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-20.04
     environment:  ${{ inputs.ENVIRONMENT }}
     env:
-      ARM_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secrets.TENANT_ID }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       TerraformBackendStorageAccount: "terraformstoragekarnod"
       TerraformBackendResourceGroup: "terraform"
       TerraformBackendStorageContainer: "state"           
