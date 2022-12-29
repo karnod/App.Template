@@ -1,0 +1,36 @@
+name: Publish Dotnet
+on:
+  workflow_call:
+    inputs:
+      PROJECT_PATH:
+        type: string
+        description: PROJECT PATH
+        required: true
+      DOTNET_VERSION:
+        type: string
+        description: DOTNET VERSION
+        default: 3.1.x
+        required: false      
+jobs:
+  publish-dotnet:
+    runs-on: ubuntu-20.04
+    env:
+      PROJECT_PATH: ${{ inputs.PROJECT_PATH }}
+      DOTNET_VERSION: ${{ inputs.DOTNET_VERSION }}
+    steps:
+      - name: Initialize Actions
+        uses: actions/checkout@v2
+      - name: Initialize .Net
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Restore Project
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+      - name: Publish Project
+        run: dotnet publish ${{ env.PROJECT_PATH }}  -c release -o "publish"
+      - name: Zip Project
+        run:  zip -r ./deploy.zip publish/.
+      - uses: actions/upload-artifact@v2
+        with:
+          name: deploy-zip
+          path: ./deploy.zip
