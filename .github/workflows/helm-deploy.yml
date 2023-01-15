@@ -13,7 +13,11 @@ on:
       CHARTNAME:
         type: string
         description: Chartname
-        required: true     
+        required: true
+      ENVIRONMENT:
+        type: string
+        description: Environment
+        required: true   
     secrets:
       CLUSTER_CONFIG:
         required: true
