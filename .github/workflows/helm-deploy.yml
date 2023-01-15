@@ -22,6 +22,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-20.04
+    environment: ${{ inputs.ENVIRONMENT }}
     container:
       image: alpine/helm:3.5.3
       env:
