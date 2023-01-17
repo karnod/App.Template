@@ -35,6 +35,7 @@ jobs:
         CHARTNAME: ${{ inputs.CHARTNAME }}
         RELEASE_NAME: ${{ inputs.RELEASE_NAME }}
         NAMESPACE: ${{ inputs.NAMESPACE }}
+        ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
     steps:
       - uses: actions/checkout@v2
       - name: Deploy to Kubernetes via Helm
@@ -47,4 +48,4 @@ jobs:
           helm list --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml
           export DEPLOYS=$(helm ls --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml | grep $RELEASE_NAME | wc -l)
           echo $DEPLOYS
-          if [ ${DEPLOYS} -eq 0 ]; then helm install ${RELEASE_NAME} ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE}; else helm upgrade ${RELEASE_NAME} ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE}; fi
+          if [ ${DEPLOYS} -eq 0 ]; then helm install ${RELEASE_NAME} -f environment/${ENVIRONMENT}/values.yaml ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE}; else helm upgrade ${RELEASE_NAME} -f environment/${ENVIRONMENT}/values.yaml ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE}; fi
