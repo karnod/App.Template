@@ -34,8 +34,7 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: deploy-zip
-        path: ~/
-
+        path: /home/runner/
     - name: 'Terraform Format'
       uses: hashicorp/terraform-github-actions@master
       with:
