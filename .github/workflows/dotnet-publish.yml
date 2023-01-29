@@ -29,8 +29,8 @@ jobs:
       - name: Publish Project
         run: dotnet publish ${{ env.PROJECT_PATH }}  -c release -o "publish"
       - name: Zip Project
-        run:  zip -r ~/deploy.zip publish/.
+        run: cd ./publish && zip -r deploy.zip .
       - uses: actions/upload-artifact@v2
         with:
           name: deploy-zip
-          path: ~/deploy.zip
+          path: ./publish/deploy.zip
