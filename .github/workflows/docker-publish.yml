@@ -6,6 +6,11 @@ on:
         type: string
         description: Arch
         required: true
+      DOCKERFILE:
+        type: string
+        description: Dockerfile path
+        required: false
+        default: "Dockerfile"
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -41,4 +46,4 @@ jobs:
       - name: Run Buildx (push image)
         if: success()
         run: |
-          docker buildx build --platform ${{ steps.prepare.outputs.docker_platform }} --tag ${{ steps.string.outputs.lowercase}}:${{ steps.prepare.outputs.version }}  --file Dockerfile --output type=image,push=true .
+          docker buildx build --platform ${{ steps.prepare.outputs.docker_platform }} --tag ${{ steps.string.outputs.lowercase}}:${{ steps.prepare.outputs.version }}  --file ${{ inputs.DOCKERFILE }} --output type=image,push=true .
