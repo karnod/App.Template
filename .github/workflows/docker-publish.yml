@@ -26,8 +26,8 @@ on:
         description: Docker username
         required: false
         default: ${{ github.actor }}
+    secrets:
       DOCKER_PASSWORD:
-        type: string
         description: Docker password
         required: false
 jobs:
@@ -43,10 +43,10 @@ jobs:
       - name: Set DOCKER_PASSWORD
         id: docker_password
         run: |
-          if [[ -z "${{ inputs.DOCKER_PASSWORD }}" ]]; then
+          if [[ -z "${{ secrets.DOCKER_PASSWORD }}" ]]; then
             echo "::set-output name=password::${DOCKER_DEFAULT_PASS}"
           else
-            echo "::set-output name=password::${{ inputs.DOCKER_PASSWORD }}"
+            echo "::set-output name=password::${{ secrets.DOCKER_PASSWORD }}"
           fi
       - name: Checkout the code
         uses: actions/checkout@v1
