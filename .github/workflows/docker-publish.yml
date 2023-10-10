@@ -44,9 +44,9 @@ jobs:
         id: docker_password
         run: |
           if [[ -z "${{ inputs.DOCKER_PASSWORD }}" ]]; then
-            echo "::set-output name=DOCKER_PASSWORD::${{ DOCKER_DEFAULT_PASS }}"
+            echo "::set-output name=password::${{ DOCKER_DEFAULT_PASS }}"
           else
-            echo "::set-output name=DOCKER_PASSWORD::${{ inputs.DOCKER_PASSWORD }}"
+            echo "::set-output name=password::${{ inputs.DOCKER_PASSWORD }}"
           fi
       - name: Checkout the code
         uses: actions/checkout@v1
@@ -69,7 +69,7 @@ jobs:
       - name: Docker Login
         if: success()
         run: |
-          echo "${DOCKER_PASSWORD}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
+          echo "${{ steps.docker_password.outputs.password }}" | docker login ${DOCKER_REGISTRY} --username "${DOCKER_USERNAME}" --password-stdin
       - name: Run Buildx (push image)
         if: success()
         run: |
