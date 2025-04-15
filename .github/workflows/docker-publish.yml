@@ -32,7 +32,7 @@ on:
         required: false
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       DOCKER_REGISTRY: ${{ inputs.DOCKER_REGISTRY }}
       DOCKER_IMAGE: ${{ inputs.DOCKER_IMAGE }}

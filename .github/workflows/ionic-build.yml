@@ -8,7 +8,7 @@ on:
         required: true
 jobs:
   ionic-android-build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     container:
       image: ${{ inputs.CONTAINER_IMAGE }}
     steps:

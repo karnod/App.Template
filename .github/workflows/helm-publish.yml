@@ -10,7 +10,7 @@ on:
         required: true
 jobs:
   package-helm:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     container:
       image: alpine/helm:3.5.3
       env:
