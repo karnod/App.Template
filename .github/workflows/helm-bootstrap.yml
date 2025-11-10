@@ -25,7 +25,30 @@ jobs:
       - name: Bootstrap helm release
         run: |
           echo ${CLUSTER_CONFIG} | base64 -d > /kubeconfig.yml
-          sed -i -e "s|#NAMESPACE#|$NAMESPACE|g" bootstrap/namespace.yml
-          sed -i -e "s|#BASE64DOCKERAUTH#|$BASE64DOCKERAUTH|g" bootstrap/imagepull.yml
-          kubectl apply -f bootstrap/namespace.yml --kubeconfig=/kubeconfig.yml
-          kubectl apply -f bootstrap/imagepull.yml --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml
+
+          # Replace #NAMESPACE# in all yml files in bootstrap folder
+          for file in bootstrap/*.yml; do
+            if [ -f "$file" ]; then
+              sed -i -e "s|#NAMESPACE#|$NAMESPACE|g" "$file"
+            fi
+          done
+
+          # Replace #BASE64DOCKERAUTH# in imagepull.yml if it exists
+          if [ -f bootstrap/imagepull.yml ]; then
+            sed -i -e "s|#BASE64DOCKERAUTH#|$BASE64DOCKERAUTH|g" \
+              bootstrap/imagepull.yml
+          fi
+
+          # Apply namespace.yml first if it exists
+          if [ -f bootstrap/namespace.yml ]; then
+            kubectl apply -f bootstrap/namespace.yml \
+              --kubeconfig=/kubeconfig.yml
+          fi
+
+          # Apply all other yml files in the bootstrap folder
+          for file in bootstrap/*.yml; do
+            if [ -f "$file" ] && [ "$file" != "bootstrap/namespace.yml" ]; then
+              kubectl apply -f "$file" --namespace ${NAMESPACE} \
+                --kubeconfig=/kubeconfig.yml
+            fi
+          done
