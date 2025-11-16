@@ -39,15 +39,72 @@ jobs:
               bootstrap/imagepull.yml
           fi
 
-          # Apply namespace.yml first if it exists
-          if [ -f bootstrap/namespace.yml ]; then
+          # Function to check if a YAML file has valid Kubernetes content
+          has_valid_content() {
+            local file="$1"
+            # Skip if file doesn't exist
+            if [ ! -f "$file" ]; then
+              return 1
+            fi
+            # Check if file contains 'kind:' field (ignoring comments and blank lines)
+            if grep -v '^\s*#' "$file" | grep -v '^\s*$' | grep -q 'kind:'; then
+              return 0
+            else
+              return 1
+            fi
+          }
+
+          # Function to check if secrets in a file already exist
+          secrets_exist() {
+            local file="$1"
+            local namespace="$2"
+            
+            # Extract secret names from the file (look for 'kind: Secret' followed by 'name:')
+            local secret_names=$(grep -A 10 'kind: Secret' "$file" | grep '^\s*name:' | awk '{print $2}' | tr -d '\r')
+            
+            # If no secrets found in file, return false (doesn't exist)
+            if [ -z "$secret_names" ]; then
+              return 1
+            fi
+            
+            # Check if any of the secrets exist in the cluster
+            for secret_name in $secret_names; do
+              if kubectl get secret "$secret_name" --namespace "$namespace" --kubeconfig=/kubeconfig.yml &>/dev/null; then
+                echo "Secret '$secret_name' already exists in namespace '$namespace'"
+                return 0
+              fi
+            done
+            
+            # No secrets exist
+            return 1
+          }
+
+          # Apply namespace.yml first if it exists and has valid content
+          if [ -f bootstrap/namespace.yml ] && has_valid_content bootstrap/namespace.yml; then
+            echo "Applying namespace.yml..."
             kubectl apply -f bootstrap/namespace.yml \
               --kubeconfig=/kubeconfig.yml
+          elif [ -f bootstrap/namespace.yml ]; then
+            echo "Skipping bootstrap/namespace.yml - no valid Kubernetes resources found"
           fi
 
           # Apply all other yml files in the bootstrap folder
           for file in bootstrap/*.yml; do
             if [ -f "$file" ] && [ "$file" != "bootstrap/namespace.yml" ]; then
+              if ! has_valid_content "$file"; then
+                echo "Skipping $file - no valid Kubernetes resources found"
+                continue
+              fi
+              
+              # Special handling for secrets.yml - check if secrets already exist
+              if [[ "$file" == *"secret"* ]] && grep -q 'kind: Secret' "$file"; then
+                if secrets_exist "$file" "$NAMESPACE"; then
+                  echo "Skipping $file - secrets already exist in cluster"
+                  continue
+                fi
+              fi
+              
+              echo "Applying $file..."
               kubectl apply -f "$file" --namespace ${NAMESPACE} \
                 --kubeconfig=/kubeconfig.yml
             fi
