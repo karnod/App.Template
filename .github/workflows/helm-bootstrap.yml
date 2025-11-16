@@ -39,16 +39,39 @@ jobs:
               bootstrap/imagepull.yml
           fi
 
-          # Apply namespace.yml first if it exists
-          if [ -f bootstrap/namespace.yml ]; then
+          # Function to check if a YAML file has valid Kubernetes content
+          has_valid_content() {
+            local file="$1"
+            # Skip if file doesn't exist
+            if [ ! -f "$file" ]; then
+              return 1
+            fi
+            # Check if file contains 'kind:' field (ignoring comments and blank lines)
+            if grep -v '^\s*#' "$file" | grep -v '^\s*$' | grep -q 'kind:'; then
+              return 0
+            else
+              return 1
+            fi
+          }
+
+          # Apply namespace.yml first if it exists and has valid content
+          if [ -f bootstrap/namespace.yml ] && has_valid_content bootstrap/namespace.yml; then
+            echo "Applying namespace.yml..."
             kubectl apply -f bootstrap/namespace.yml \
               --kubeconfig=/kubeconfig.yml
+          elif [ -f bootstrap/namespace.yml ]; then
+            echo "Skipping bootstrap/namespace.yml - no valid Kubernetes resources found"
           fi
 
           # Apply all other yml files in the bootstrap folder
           for file in bootstrap/*.yml; do
             if [ -f "$file" ] && [ "$file" != "bootstrap/namespace.yml" ]; then
-              kubectl apply -f "$file" --namespace ${NAMESPACE} \
-                --kubeconfig=/kubeconfig.yml
+              if has_valid_content "$file"; then
+                echo "Applying $file..."
+                kubectl apply -f "$file" --namespace ${NAMESPACE} \
+                  --kubeconfig=/kubeconfig.yml
+              else
+                echo "Skipping $file - no valid Kubernetes resources found"
+              fi
             fi
           done
