@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.ENVIRONMENT }}
     container:
-      image: alpine/helm:3.5.3
+      image: alpine/helm:3.16.2
       env:
         CLUSTER_CONFIG: ${{ secrets.CLUSTER_CONFIG }}
         HELM_GIT_PASSWORD: ${{ secrets.HELM_GIT_PASSWORD }}
@@ -37,7 +37,7 @@ jobs:
         NAMESPACE: ${{ inputs.NAMESPACE }}
         ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Deploy to Kubernetes via Helm
         run: |
           echo ${CLUSTER_CONFIG} | base64 -d > /kubeconfig.yml

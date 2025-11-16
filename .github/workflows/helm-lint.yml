@@ -5,9 +5,9 @@ jobs:
   lint-helm:
     runs-on: ubuntu-latest
     container:
-      image: alpine/helm:3.5.3
+      image: alpine/helm:3.16.2
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Lint Helm Chart
         run: |
           helm lint helm/
