@@ -44,30 +44,28 @@ jobs:
         id: docker_password
         run: |
           if [[ -z "${{ secrets.DOCKER_PASSWORD }}" ]]; then
-            echo "::set-output name=password::${DOCKER_DEFAULT_PASS}"
+            echo "password=${DOCKER_DEFAULT_PASS}" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=password::${{ secrets.DOCKER_PASSWORD }}"
+            echo "password=${{ secrets.DOCKER_PASSWORD }}" >> $GITHUB_OUTPUT
           fi
       - name: Checkout the code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
       # https://github.com/docker/setup-buildx-action
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          version: latest
+        uses: docker/setup-buildx-action@v3
       - name: Prepare
         if: success()
         id: prepare
         run: |
-          echo ::set-output name=docker_platform::${DOCKER_TARGET_PLATFORM}        
-          echo ::set-output name=docker_image::${DOCKER_REGISTRY}/${DOCKER_IMAGE}        
-          echo ::set-output name=version::${GITHUB_RUN_NUMBER}
+          echo "docker_platform=${DOCKER_TARGET_PLATFORM}" >> $GITHUB_OUTPUT
+          echo "docker_image=${DOCKER_REGISTRY}/${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
+          echo "version=${GITHUB_RUN_NUMBER}" >> $GITHUB_OUTPUT
       - name: Lowercase
         id: string
-        uses: ASzc/change-string-case-action@v2
+        uses: ASzc/change-string-case-action@v6
         with:
           string: ${{ steps.prepare.outputs.docker_image }}
       - name: Docker Login

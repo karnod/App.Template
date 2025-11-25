@@ -15,13 +15,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     container:
-      image: dtzar/helm-kubectl:3.2.1
+      image: alpine/helm:3.16.2
       env:
         CLUSTER_CONFIG: ${{ secrets.CLUSTER_CONFIG }}
         BASE64DOCKERAUTH: ${{ secrets.BASE64DOCKERAUTH }}
         NAMESPACE: ${{ inputs.NAMESPACE }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Install kubectl
+        run: |
+          apk add --no-cache curl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          mv kubectl /usr/local/bin/
       - name: Bootstrap helm release
         run: |
           echo ${CLUSTER_CONFIG} | base64 -d > /kubeconfig.yml
