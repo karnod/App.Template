@@ -47,6 +47,7 @@ jobs:
       - name: Deploy to Kubernetes via Helm
         run: |
           echo ${CLUSTER_CONFIG} | base64 -d > /kubeconfig.yml
+          chmod 600 /kubeconfig.yml
           export CHART=$(echo $CHARTNAME | sed -e 's/\.//g')
           echo ${CHART}
           helm repo add ${GITHUB_REPOSITORY_OWNER} "https://${HELM_GIT_PASSWORD}@raw.githubusercontent.com/${GITHUB_REPOSITORY_OWNER}/helm-charts/main/"
@@ -54,11 +55,19 @@ jobs:
           helm list --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml
           export DEPLOYS=$(helm ls --namespace ${NAMESPACE} --kubeconfig=/kubeconfig.yml | grep $RELEASE_NAME | wc -l)
           echo $DEPLOYS
+          
           SET_FLAGS=""
           if [ -n "${HELM_SET_VALUES}" ]; then
-            IFS=',' read -ra VALS <<< "${HELM_SET_VALUES}"
-            for val in "${VALS[@]}"; do
+            OLD_IFS="$IFS"
+            IFS=','
+            for val in ${HELM_SET_VALUES}; do
               SET_FLAGS="${SET_FLAGS} --set ${val}"
             done
+            IFS="$OLD_IFS"
           fi
-          if [ ${DEPLOYS} -eq 0 ]; then helm install ${RELEASE_NAME} -f environment/${ENVIRONMENT}/values.yaml ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE} ${SET_FLAGS}; else helm upgrade ${RELEASE_NAME} -f environment/${ENVIRONMENT}/values.yaml ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE} ${SET_FLAGS}; fi
+          
+          if [ ${DEPLOYS} -eq 0 ]; then 
+            helm install ${RELEASE_NAME} -f environment/${ENVIRONMENT}/values.yaml ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE} ${SET_FLAGS}
+          else 
+            helm upgrade ${RELEASE_NAME} -f environment/${ENVIRONMENT}/values.yaml ${GITHUB_REPOSITORY_OWNER}/${CHART} --kubeconfig=/kubeconfig.yml --namespace=${NAMESPACE} ${SET_FLAGS}
+          fi
