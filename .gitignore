@@ -1,0 +1,39 @@
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-*
+.DS_Store
+
+# Logs
+*.log
+
+# Test results
+TestResults*/
+
+# Build artifacts
+bin/
+obj/
+dist/
+build/
+publish/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files (should not be committed)
+.env
+.env.local
+*.pem
+*.key
+
+# OS files
+Thumbs.db
+.DS_Store
